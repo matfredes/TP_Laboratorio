@@ -113,20 +113,21 @@ int main()
         FILE *archivoTratado = abrir(maestro.nombre, "r"); // abro archivo cpp para tomar las 2 primeras lineas de codigo
         maestro.status = '?';
 
+        // En caso de encontrar las primeras lineas blancas, recorrera hasta poder imprimir 2 lineas con contenido
         char linea[256];
         bool primeraLineaEnBlanco = false;
         bool segundaLineaEnBlanco = false;
         if (fgets(linea, sizeof(linea), archivoTratado) != NULL)
         {
             if (strlen(linea) <= 1)
-            { // La primera línea está en blanco si tiene solo un carácter (el salto de línea)
+            {
                 primeraLineaEnBlanco = true;
             }
         }
         if (fgets(linea, sizeof(linea), archivoTratado) != NULL)
         {
             if (strlen(linea) <= 1)
-            { // La segunda línea está en blanco si tiene solo un carácter (el salto de línea)
+            {
                 segundaLineaEnBlanco = true;
             }
         }
