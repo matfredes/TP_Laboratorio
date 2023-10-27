@@ -58,11 +58,22 @@ void escribirLoggerTxt(char archivo[26], FILE *file, char tipo)
     return;
 }
 
-// Escribir logger.log (txt)
+// escribir logger.log con 2 archivos
+void escribirLoggerTxtx2(char archivo1[26], char archivo2[26], FILE *file, char tipo)
+{
+    fprintf(file, "%c\t%s\t%s\n", tipo, archivo1, archivo2);
+}
+
+// Escribir error.log (txt)
 void escribirErrorTxt(char archivo[26], FILE *file)
 {
     fprintf(file, "E\t%s\n", archivo);
     return;
+}
+// Escribir error.log con 2 archivos
+void escribirErrorTxtx2(char archivo1[26], char archivo2[26], FILE *file)
+{
+    fprintf(file, "E\t%s\t%s\n", archivo1, archivo2);
 }
 
 // Vector para guardar valores a imprimir con status
@@ -112,44 +123,6 @@ void nombreVecMaestro(Maestro vecMaestro[MAX_BUFFER], char nombre[26], int &m)
     }
 }
 
-// size
-void statusVecMaestro(Maestro vecMaestro[MAX_BUFFER], char estado, int &m)
-{
-    int cont = 0;
-    for (int x = 0; x < m; x++)
-    {
-        if (vecMaestro[x].status == estado)
-        {
-            cont++;
-            vecMaestro[x].status = estado;
-        }
-    }
-    if (cont == 0)
-    {
-        vecMaestro[m].status = estado;
-        m++;
-    }
-}
-
-// contenido
-void conteVecMaestro(Maestro vecMaestro[MAX_BUFFER], char contenido[MAX_BUFFER], int &m)
-{
-    int cont = 0;
-    for (int x = 0; x < m; x++)
-    {
-        if (strcmp(vecMaestro[x].contenido, contenido) == 0)
-        {
-            cont++;
-            strcpy(vecMaestro[x].contenido, contenido);
-        }
-    }
-    if (cont == 0)
-    {
-        strcpy(vecMaestro[m].contenido, contenido);
-        m++;
-    }
-}
-
 // CARGA/MODIFICACIÓN DE vecNovedades
 
 // nombre
@@ -171,68 +144,11 @@ void nombreVecNovedades(Novedades vecNovedades[MAX_BUFFER], char nombre[26], int
     }
 }
 
-// size
-void sizeVecNovedades(Novedades vecNovedades[MAX_BUFFER], int size, int &n)
-{
-    int cont = 0;
-    for (int x = 0; x < n; x++)
-    {
-        if (vecNovedades[x].size == size)
-        {
-            cont++;
-            vecNovedades[x].size = size;
-        }
-    }
-    if (cont == 0)
-    {
-        vecNovedades[n].size = size;
-        n++;
-    }
-}
-
-// fecha
-void fechaVecNovedades(Novedades vecNovedades[MAX_BUFFER], int fecha, int &n)
-{
-    int cont = 0;
-    for (int x = 0; x < n; x++)
-    {
-        if (vecNovedades[x].fecha == fecha)
-        {
-            cont++;
-            vecNovedades[x].fecha = fecha;
-        }
-    }
-    if (cont == 0)
-    {
-        vecNovedades[n].fecha = fecha;
-        n++;
-    }
-}
-
-// autor
-void autorVecNovedades(Novedades vecNovedades[MAX_BUFFER], char autor[26], int &n)
-{
-    int cont = 0;
-    for (int x = 0; x < n; x++)
-    {
-        if (strcmp(vecNovedades[x].autor, autor) == 0)
-        {
-            cont++;
-            strcpy(vecNovedades[x].autor, autor);
-        }
-    }
-    if (cont == 0)
-    {
-        strcpy(vecNovedades[n].autor, autor);
-        n++;
-    }
-}
-
 int main()
 {
     system("cls");
 
-    FILE *archivoPropiedades = abrir("prop_aux.properties", "r");
+    FILE *archivoPropiedades = abrir("comandos_svn.properties", "r");
     FILE *archivoNovedades = abrir("novedades.dat", "rb");
     FILE *archivoMaestro = abrir("maestro.dat", "rb");
     FILE *logger = abrir("logger.log", "w");
@@ -471,11 +387,12 @@ int main()
         }
         else if (strcmp(condicion, "diff") == 0)
         {
+            bool cumpleCondicion = false;
             char archivo1[26] = {0};
             char archivo2[26] = {0};
             strcpy(archivo1, strtok(archivoTratado, " "));
             strcpy(archivo2, strtok(NULL, "\n"));
-            int contLogDiff = 0;
+
             for (int j = 0; j < n; j++)
             {
                 if (strcmp(archivo1, vecNovedades[j].nombre) == 0)
@@ -484,19 +401,29 @@ int main()
                     {
                         if (strcmp(archivo2, vecNovedades[p].nombre) == 0)
                         {
-                            printf("Diff: El archivo %s contiene lo siguiente: %s", vecNovedades[j].nombre, vecNovedades[j].nombre);
+                            if (vecNovedades[j].size != 0 && vecNovedades[p].size != 0)
+                            {
+                                if (vecNovedades[j].fecha != 0 && vecNovedades[p].fecha != 0)
+                                {
+                                    if (strcmp(vecNovedades[j].autor, "") != 0 && strcmp(vecNovedades[p].autor, "") != 0)
+                                    {
+                                        printf("Diff: El archivo %s posee nombre: %s y el archivo %s posee nombre: %s\n", vecNovedades[j].nombre, vecNovedades[j].nombre, vecNovedades[p].nombre, vecNovedades[p].nombre);
+                                        printf("el archivo %s posee un size de: %i y el archivo %s posee un size de: %i\n", vecNovedades[j].nombre, vecNovedades[j].size, vecNovedades[p].nombre, vecNovedades[p].size);
+                                        printf("%s posee %i como fecha mientras que %s posee %i\n", vecNovedades[j].nombre, vecNovedades[j].fecha, vecNovedades[p].nombre, vecNovedades[p].fecha);
+                                        printf("el autor de %s es %s y el de %s es %s\n", vecNovedades[j].nombre, vecNovedades[j].autor, vecNovedades[p].nombre, vecNovedades[p].autor);
+                                        escribirLoggerTxtx2(archivo1, archivo2, logger, '?');
+                                        cumpleCondicion = true;
+                                    }
+                                }
+                            }
                         }
                     }
-
-                    contLogDiff++;
-
-                    escribirLoggerTxt(archivoTratado, logger, '?');
                 }
             }
-            if (contLogDiff == 0)
+            if (!cumpleCondicion)
             {
-                printf("Diff: No se encontro el archivo mencionado\n");
-                escribirErrorTxt(archivoTratado, error);
+                printf("Diff: no se puede realizar una comparacion\n");
+                escribirErrorTxtx2(archivo1, archivo2, error);
             }
         }
         else if (strcmp(condicion, "revert") == 0)
@@ -509,7 +436,7 @@ int main()
                     contLogRevert++;
                     if (contLogRevert == 1)
                     {
-                        escribirLoggerTxt(archivoTratado, logger, '?');
+                        escribirLoggerTxt(archivoTratado, logger, 'M');
                     }
                 }
             }
@@ -588,12 +515,13 @@ int main()
                     if (strcmp(vecMaestro[j].contenido, "") != 0)
                     {
                         printf("Cat: El contenido del archivo %s es: %s\n", vecMaestro[j].nombre, vecMaestro[j].contenido);
+                        escribirLoggerTxt(archivoTratado, logger, '?');
                     }
                     else
                     {
                         printf("Cat: el archivo no contiene informacion detallada\n");
+                        escribirErrorTxt(archivoTratado, error);
                     }
-                    escribirLoggerTxt(archivoTratado, logger, '?');
                 }
             }
             if (contLogCat == 0)
@@ -604,11 +532,209 @@ int main()
         }
         else if (strcmp(condicion, "propget") == 0)
         {
-            /* code */
+            int contPropGet = 0;
+            char propiedad[26] = {0};
+            char archBuscado[26] = {0};
+            strcpy(propiedad, strtok(archivoTratado, " "));
+            strcpy(archBuscado, strtok(NULL, "\n"));
+            bool encontradoEnNovedades = false; // Variable para seguimiento
+
+            for (int z = 0; z < n; z++)
+            {
+                if (strcmp(archBuscado, vecNovedades[z].nombre) == 0)
+                {
+                    if (strcmp(propiedad, "nombre") == 0)
+                    {
+                        if (strcmp(vecNovedades[z].nombre, "") == 0)
+                        {
+                            escribirErrorTxt(archBuscado, error);
+                        }
+                        else
+                        {
+                            printf("Propget: El nombre del archivo es: %s\n", vecNovedades[z].nombre);
+                            escribirLoggerTxt(archBuscado, logger, '?');
+                            contPropGet++;
+                        }
+                        encontradoEnNovedades = true; // Marcamos que encontró en vecNovedades
+                    }
+                    else if (strcmp(propiedad, "size") == 0)
+                    {
+                        if (vecNovedades[z].size == 0)
+                        {
+                            escribirErrorTxt(archBuscado, error);
+                        }
+                        else
+                        {
+                            printf("Propget: El size del archivo es: %i\n", vecNovedades[z].size);
+                            escribirLoggerTxt(archBuscado, logger, '?');
+                            contPropGet++;
+                        }
+                        encontradoEnNovedades = true; // Marcamos que encontró en vecNovedades
+                    }
+                    else if (strcmp(propiedad, "fecha") == 0)
+                    {
+                        if (vecNovedades[z].fecha == 0)
+                        {
+                            escribirErrorTxt(archBuscado, error);
+                        }
+                        else
+                        {
+                            printf("Propget: La fecha del archivo es: %i\n", vecNovedades[z].fecha);
+                            escribirLoggerTxt(archBuscado, logger, '?');
+                            contPropGet++;
+                        }
+                        encontradoEnNovedades = true; // Marcamos que encontró en vecNovedades
+                    }
+                    else if (strcmp(propiedad, "autor") == 0)
+                    {
+                        if (strcmp(vecNovedades[z].autor, "") == 0)
+                        {
+                            escribirErrorTxt(archBuscado, error);
+                        }
+                        else
+                        {
+                            printf("Propget: El autor del archivo es: %s\n", vecNovedades[z].autor);
+                            escribirLoggerTxt(archBuscado, logger, '?');
+                            contPropGet++;
+                        }
+                        encontradoEnNovedades = true; // Marcamos que encontró en vecNovedades
+                    }
+                }
+            }
+
+            // Si no encontró en vecNovedades, recorre vecMaestro
+            if (!encontradoEnNovedades)
+            {
+                for (int j = 0; j < m; j++)
+                {
+                    if (strcmp(archBuscado, vecMaestro[j].nombre) == 0)
+                    {
+                        if (strcmp(propiedad, "nombre") == 0)
+                        {
+                            if (strcmp(vecMaestro[j].nombre, "") == 0)
+                            {
+                                escribirErrorTxt(archBuscado, error);
+                            }
+                            else
+                            {
+                                printf("Propget: El nombre del archivo es: %s\n", vecMaestro[j].nombre);
+                                escribirLoggerTxt(archBuscado, logger, '?');
+                                contPropGet++;
+                            }
+                        }
+                        else if (strcmp(propiedad, "status") == 0)
+                        {
+                            if (vecMaestro[j].status == '\0')
+                            {
+                                escribirErrorTxt(archBuscado, error);
+                            }
+                            else
+                            {
+                                printf("Propget: El status del archivo es: %c\n", vecMaestro[j].status);
+                                escribirLoggerTxt(archBuscado, logger, '?');
+                                contPropGet++;
+                            }
+                        }
+                        else if (strcmp(propiedad, "contenido") == 0)
+                        {
+                            if (strcmp(vecMaestro[j].contenido, "") == 0)
+                            {
+                                escribirErrorTxt(archBuscado, error);
+                            }
+                            else
+                            {
+                                printf("Propget: El contenido del archivo es: %s\n", vecMaestro[j].contenido);
+                                escribirLoggerTxt(archBuscado, logger, '?');
+                                contPropGet++;
+                            }
+                        }
+                    }
+                }
+            }
+
+            if (contPropGet == 0)
+            {
+                printf("Propget: No se puede obtener la propiedad del archivo\n");
+                escribirErrorTxt(archivoTratado, error);
+            }
         }
         else if (strcmp(condicion, "propset") == 0)
         {
-            /* code */
+            bool encontrado = false;
+            bool modificado = false;
+            char propiedad[26] = {0};
+            char valor[26] = {0};
+            char archBuscado[26] = {0};
+            strcpy(propiedad, strtok(archivoTratado, " "));
+            strcpy(valor, strtok(NULL, " "));
+            strcpy(archBuscado, strtok(NULL, "\n"));
+
+            for (int i = 0; i < n; i++)
+            {
+
+                if (strcmp(archBuscado, vecNovedades[i].nombre) == 0)
+                {
+                    encontrado = true;
+                    if (strcmp(propiedad, "nombre") == 0)
+                    {
+                        strcpy(vecNovedades[i].nombre, valor);
+                        modificado = true;
+                    }
+                    else if (strcmp(propiedad, "size") == 0)
+                    {
+                        vecNovedades[i].size = atoi(valor);
+                        modificado = true;
+                    }
+                    else if (strcmp(propiedad, "fecha") == 0)
+                    {
+                        vecNovedades[i].fecha = atoi(valor);
+                        modificado = true;
+                    }
+                    else if (strcmp(propiedad, "autor") == 0)
+                    {
+                        strcpy(vecNovedades[i].autor, valor);
+                        modificado = true;
+                    }
+                    printf("Propset: El archivo %s fue modificado\n", archBuscado);
+
+                    escribirLoggerTxt(archBuscado, logger, 'M');
+
+                    break;
+                }
+            }
+            if (!modificado)
+            {
+                for (int j = 0; j < m; j++)
+                {
+                    if (strcmp(archBuscado, vecMaestro[j].nombre) == 0)
+                    {
+                        encontrado = true;
+                        if (strcmp(propiedad, "nombre") == 0)
+                        {
+                            strcpy(vecMaestro[j].nombre, valor);
+                        }
+                        else if (strcmp(propiedad, "status") == 0)
+                        {
+                            vecMaestro[j].status = valor[0];
+                        }
+                        else if (strcmp(propiedad, "contenido") == 0)
+                        {
+                            strcpy(vecMaestro[j].contenido, valor);
+                        }
+
+                        printf("Propset: El archivo %s fue modificado\n", archBuscado);
+
+                        escribirLoggerTxt(archBuscado, logger, 'M');
+
+                        break;
+                    }
+                }
+            }
+            if (!encontrado)
+            {
+                escribirErrorTxt(archBuscado, error);
+                printf("PropSet: No se encontro el archivo a modificar\n");
+            }
         }
     }
 
