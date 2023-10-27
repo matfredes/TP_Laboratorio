@@ -61,7 +61,7 @@ void escribirNovBin(Novedades novedades, FILE *file)
 // Escribir maestro.csv (txt)
 void escribirMaeTxt(Maestro maestro, FILE *file) // escribo txt
 {
-    fprintf(file, "%s,%c,%s ", maestro.nombre, maestro.status, maestro.contenido);
+    fprintf(file, "%s,%c,%s", maestro.nombre, maestro.status, maestro.contenido);
     return;
 }
 
@@ -80,6 +80,16 @@ void contenido(char contenido[MAX_BUFFER], FILE *file)
     while (i < 2)
         if (fgets(buffer, MAX_BUFFER, file) != NULL)
         {
+            // Encuentra la posición del carácter '\n' en el buffer
+            size_t posicion = strcspn(buffer, "\n");
+
+            // Si se encuentra un '\n', elimínalo
+            if (buffer[posicion] == '\n')
+            {
+                buffer[posicion] = '\0'; // Reemplaza '\n' con el carácter nulo
+            }
+
+            // Concatenar las líneas en la misma cadena con un espacio entre ellas
             if (i == 0)
             {
                 strcpy(contenido, buffer);
@@ -87,7 +97,9 @@ void contenido(char contenido[MAX_BUFFER], FILE *file)
             }
             else
             {
+                strcat(contenido, " ");
                 strcat(contenido, buffer);
+                strcat(contenido, "\n");
                 i++;
             }
         }
@@ -150,4 +162,4 @@ int main()
     fclose(archivoMaestroDAT);
     system("pause");
     return 0;
-} // NOTA IMPORTANTE: NO ENCUENTRO LA MANERA DE ABRIR UN ARCHIVO MEDIANTE EL USO DE UNA VARIABLE STRING
+}
